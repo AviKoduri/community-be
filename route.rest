@@ -1,0 +1,127 @@
+GET http://localhost:3000/subscribers
+###
+GET http://localhost:3000/subscribers/687e34cf25363d448dcc9cdd
+
+###
+POST  http://localhost:3000/subscribers
+Content-Type: application/json
+
+{
+    "name":"Avinash",
+    "title":"Avinash"
+}
+
+###
+DELETE  http://localhost:3000/subscribers/687e34cf25363d448dcc9cdd
+
+
+###
+PATCH http://localhost:3000/subscribers/687e3921563ae78cb6b838bc
+Content-Type: application/json
+
+{
+    "name":"Avinash Koduri"
+}
+//user
+###
+GET http://localhost:3000/user
+###
+GET http://localhost:3000/user/687f3ced2bdb638d4311041a
+
+###
+POST  http://localhost:3000/user
+Content-Type: application/json
+
+{
+  "username": "user2",
+  "email": "user2@example.com",
+  "password": "user1Password123",
+  "avatarUrl": "https://example.com/avatars/janedoe.jpg",
+  "bio": "Coffee enthusiast. Web developer. Cat mom.",
+  "organisations":["687f3cd22bdb638d43110417"]
+}
+
+
+###
+DELETE  http://localhost:3000/user/687e6bb928b2d1395b0575c3
+
+
+###
+PATCH http://localhost:3000/user/687fbedcf1b6e2ee928e460e
+Content-Type: application/json
+
+{
+  "organisations":["687f3cd22bdb638d43110417","687f88df1184ca7b222d8d20"]
+}
+
+//signin
+###
+POST  http://localhost:3000/signIn
+Content-Type: application/json
+
+{
+    "username":"Avinash",
+    "password":"AvinashPassword123"
+}
+
+
+//organisation
+
+###
+GET http://localhost:3000/organisation
+
+//create
+###
+POST http://localhost:3000/organisation
+Content-Type: application/json
+
+{
+    "name":"XYZz",
+    "description":"XYZ organisation",
+    "avatarUrl":""
+}
+
+
+//update
+###
+PATCH http://localhost:3000/organisation/687f3cd22bdb638d43110417
+Content-Type: application/json
+
+{
+    "name":"XYZ"
+}
+
+//delete
+###
+DELETE http://localhost:3000/organisation/687f3cc22bdb638d4311040f
+
+
+
+//post
+
+###
+GET http://localhost:3000/post?skip=0&LIMIT=10
+
+###
+POST http://localhost:3000/post
+Content-Type: application/json
+
+{
+"author":"687e7c0be2375d3288d9234b",
+"content":"Hello my first post!",
+"organisation":"687f3cd22bdb638d43110417"
+}
+###
+POST http://localhost:3000/comment
+Content-Type: application/json
+
+{
+  "postId": "6880ef218c5f8e76cf47ca58",
+  "content": "comment3"
+}
+
+
+
+
+###
+GET http://localhost:3000/comment/post/6880ef218c5f8e76cf47ca58
