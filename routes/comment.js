@@ -10,7 +10,7 @@ router.get("/post/:postId", async (req, res) => {
     const postId = req.params.postId;
     const comments = await Comment.find({ post: postId })
       .populate("author", "username avatarUrl")
-      .sort({ createdAt: 1 }); // oldest first or (-1) newest first
+      .sort({ createdAt: -1 }); // oldest first or (-1) newest first
     res.json(comments);
   } catch (error) {
     res.status(500).json({ message: error.message });

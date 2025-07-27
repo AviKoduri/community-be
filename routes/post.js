@@ -4,16 +4,17 @@ const Post = require("../models/post"); // Correct
 const authMiddleware = require("../utils/authmiddleware");
 
 //get all
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware,async (req, res) => {
   try {
      const skip = parseInt(req.query.skip, 10) || 0;
     const limit = parseInt(req.query.limit, 10) || 10;
-    // const filter = { organisation: { $in: req.user.organisations } };
+    const filter = { organisation: { $in: req.user.organisations } };
 
-    const posts = await Post.find().skip(skip)
+    const posts = await Post.find(filter).skip(skip)
+    .populate("author")
       .limit(limit)
       .sort({ createdAt: -1 });
-      const totalCount = await Post.countDocuments();
+      const totalCount = await Post.countDocuments(filter);
 res.json({ posts, totalCount });
 
   } catch (error) {
@@ -51,8 +52,9 @@ res.json(res.post)
 //likes
 // PATCH /:id/like
 router.patch("/:id/like", getPost, async (req, res) => {
+  console.log("enter")
   const userId = req.body.userId; // The user's id sent in the body
-
+console.log("User ID:", userId);
   if (!userId) {
     return res.status(400).json({ message: "userId is required" });
   }
@@ -105,6 +107,7 @@ try {
 
 
 async function getPost(req,res,next) {
+  console.log("enter to post")
     let post
     try {
         post =await Post.findById(req.params.id)
