@@ -4,17 +4,17 @@ const Post = require("../models/post"); // Correct
 const authMiddleware = require("../utils/authmiddleware");
 
 //get all
-router.get("/", authMiddleware,async (req, res) => {
+router.get("/",async (req, res) => {
   try {
      const skip = parseInt(req.query.skip, 10) || 0;
     const limit = parseInt(req.query.limit, 10) || 10;
-    const filter = { organisation: { $in: req.user.organisations } };
+    // const filter = { organisation: { $in: req.user.organisations } };
 
-    const posts = await Post.find(filter).skip(skip)
+    const posts = await Post.find().skip(skip)
     .populate("author")
       .limit(limit)
       .sort({ createdAt: -1 });
-      const totalCount = await Post.countDocuments(filter);
+      const totalCount = await Post.countDocuments();
 res.json({ posts, totalCount });
 
   } catch (error) {
