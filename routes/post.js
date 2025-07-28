@@ -9,7 +9,7 @@ router.get("/",async (req, res) => {
      const skip = parseInt(req.query.skip, 10) || 0;
     const limit = parseInt(req.query.limit, 10) || 10;
     // const filter = { organisation: { $in: req.user.organisations } };
-console.log("enter to post",filter)
+// console.log("enter to post",filter)
     const posts = await Post.find().skip(skip)
     .populate("author")
     .limit(limit)
