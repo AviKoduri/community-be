@@ -78,6 +78,78 @@ router.get('/:organisationId/:userId', authMiddleware, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+// GET /conversations/:organisationId
+router.get('/conversations/:organisationId', authMiddleware, async (req, res) => {
+  try {
+    const authUserId = req.user._id.toString();
+    const { organisationId } = req.params;
+
+    // 1. Find all messages for this user in this organisation (as sender or recipient)
+    const messages = await Chat.aggregate([
+      {
+        $match: {
+          organisation: organisationId,
+          $or: [
+            { sender: req.user._id },
+            { recipient: req.user._id }
+          ]
+        }
+      },
+      // 2. For each conversation pair, determine the conversation partner
+      {
+        $addFields: {
+          interactionWith: {
+            $cond: [
+              { $eq: ["$sender", req.user._id] }, "$recipient", "$sender"
+            ]
+          }
+        }
+      },
+      // 3. Sort to get most recent message first (for $group)
+      { $sort: { createdAt: -1 } },
+      // 4. Group by "interactionWith", take the latest message per contact
+      {
+        $group: {
+          _id: "$interactionWith",
+          latestMessage: { $first: "$$ROOT" }
+        }
+      },
+      // 5. Lookup user details for interactionWith
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "interactionWithUser"
+        }
+      },
+      { $unwind: "$interactionWithUser" },
+      // 6. Optional: limit to latest n conversations
+      { $sort: { "latestMessage.createdAt": -1 } }
+    ]);
+
+    // Format data
+    const conversations = messages.map(conv => ({
+      user: {
+        _id: conv.interactionWithUser._id,
+        username: conv.interactionWithUser.username,
+        avatarUrl: conv.interactionWithUser.avatarUrl,
+      },
+      latestMessage: {
+        _id: conv.latestMessage._id,
+        sender: conv.latestMessage.sender,
+        recipient: conv.latestMessage.recipient,
+        message: conv.latestMessage.message,
+        createdAt: conv.latestMessage.createdAt,
+      }
+    }));
+
+    res.json(conversations);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 
 async function usersShareOrganisation(senderId, recipientId, organisationId) {

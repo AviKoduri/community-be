@@ -3,19 +3,31 @@ const router =express.Router()
 const Post = require("../models/post"); // Correct
 const authMiddleware = require("../utils/authmiddleware");
 
+
+//
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage }).array('media'); // For multiple files
+
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+  cloud_name: "doc9mueyf",
+  api_key: "212757494956183",
+  api_secret: "MgYC64P55CLlrhVDjUyPwmI9S3E"
+})
 //get all
-router.get("/",async (req, res) => {
+router.get("/",authMiddleware,async (req, res) => {
   try {
      const skip = parseInt(req.query.skip, 10) || 0;
     const limit = parseInt(req.query.limit, 10) || 10;
-    // const filter = { organisation: { $in: req.user.organisations } };
-// console.log("enter to post",filter)
-    const posts = await Post.find().skip(skip)
+    const filter = { organisation: { $in: req.user.organisations } };
+console.log("enter to post",filter)
+    const posts = await Post.find(filter).skip(skip)
     .populate("author")
     .limit(limit)
     .sort({ createdAt: -1 });
     console.log("posts",posts)
-      const totalCount = await Post.countDocuments();
+      const totalCount = await Post.countDocuments(filter);
 res.json({ posts, totalCount });
 
   } catch (error) {
@@ -81,20 +93,33 @@ console.log("User ID:", userId);
 });
 
 //create
-router.post("/",async (req,res)=>{
-    try {
-   const post = await Post.create({
+router.post("/", upload, async (req, res) => {
+  try {
+    // Upload all files (if any)
+    let mediaUrls = [];
+    if (req.files && req.files.length > 0) {
+      for (let file of req.files) {
+        const base64str = file.buffer.toString('base64');
+        const dataUri = `data:${file.mimetype};base64,${base64str}`;
+        const uploadResult = await cloudinary.uploader.upload(dataUri, {
+          resource_type: "auto", // supports both images and videos
+        });
+        mediaUrls.push(uploadResult.secure_url);
+      }
+    }
+    // Create post as before, now with mediaUrls
+    const post = await Post.create({
       author: req.body.author,
       organisation: req.body.organisation,
       content: req.body.content,
-    //   mediaUrls: mediaUrls,
+      mediaUrls: mediaUrls
     });
-res.status(201).json(post);
-} catch (error) {
-        res.status(400).json({message:error?.message})
-    
-}
-})
+    res.status(201).json(post);
+  } catch (error) {
+    res.status(400).json({message: error?.message});
+  }
+});
+
 //delete
 router.delete("/:id",getPost,async(req,res)=>{
 try {
